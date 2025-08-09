@@ -9,18 +9,23 @@ export class GameOverScene extends Phaser.Scene {
     }
 
     create(data: any) {
-        // Reset cursor to default in case it was stuck as pointer
+        // Reset cursor state.
         this.input.setDefaultCursor('default');
-        
+
+        const score = data.score || 0;
+
         this.add.text(400, 300, 'Game Over! Press "A" to play again.')
             .setOrigin(0.5);
 
+        this.add.text(400, 340, `Final Score: ${score}`, {
+            font: '24px Consolas',
+            fontStyle: 'bold',
+            color: '#ffffff'
+        }).setOrigin(0.5);
 
-        // Create key input
+        // Listen for restart request.
         this.input.keyboard!.on('keydown-A', () => {
-            console.log('restart the scene');
             this.scene.stop(sceneKeys.gameOver);
-
             this.scene.start(sceneKeys.main, {});
         });
     }

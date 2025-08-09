@@ -47,20 +47,17 @@ export class UIScene extends Phaser.Scene {
             this.input.setDefaultCursor('default');
         });
         pauseBtn.on('pointerup', () => {
-            console.log('pause btn click');
             this.paused = !this.paused;
             if (this.paused) {
                 pauseBtn.setTint(0xc0392b);
                 this.scene.pause(sceneKeys.main);
                 this.pauseText.setVisible(true);
-                // Pause music in MainScene
                 const mainScene = this.scene.get(sceneKeys.main);
                 mainScene.sound.pauseAll();
             } else {
                 pauseBtn.clearTint();
                 this.scene.resume(sceneKeys.main);
                 this.pauseText.setVisible(false);
-                // Resume music in MainScene
                 const mainScene = this.scene.get(sceneKeys.main);
                 mainScene.sound.resumeAll();
             }
@@ -100,18 +97,15 @@ export class UIScene extends Phaser.Scene {
     }
 
     shutdown() {
-        // Called when the scene shuts down (but may be restarted later)
         this.registry.events.off('changedata-score', this.updateScore);
         this.registry.events.off('changedata-bombs', this.updateBombs);
     }
 
     destroy() {
-        // Called when the scene is fully destroyed
         this.registry.events.off('changedata-score', this.updateScore);
         this.registry.events.off('changedata-bombs', this.updateBombs);
     }
 
-    // Phaser 3 specific way to hook into lifecycle
     init() {
         this.events.on(Phaser.Scenes.Events.SHUTDOWN, this.shutdown, this);
         this.events.on(Phaser.Scenes.Events.DESTROY, this.destroy, this);

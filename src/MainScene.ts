@@ -250,6 +250,7 @@ export class MainScene extends Phaser.Scene {
             target: sceneKeys.gameOver,
             duration: 1500,
             moveBelow: true,
+            data: { score: this.score },
             onUpdate: (progress: number) => {
                 this.cameras.main.setAlpha(1 - progress);
             }
