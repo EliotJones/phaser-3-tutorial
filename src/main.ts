@@ -116,7 +116,9 @@ class MainScene extends Phaser.Scene {
         player: DynSprite,
         star: ArcadeImage
     ) {
+        const dbgColor = star.debugBodyColor;
         star.disableBody(true, true);
+        star.setDebug(false, false, 0);
 
         this.score += 10;
         this.scoreText.setText(`score: ${this.score}`);
@@ -125,6 +127,9 @@ class MainScene extends Phaser.Scene {
             console.log('star respawn');
             const { x, y } = this.getRandomSpawn();
             star.enableBody(true, x, y, true, true);
+
+            star.setDebug(true, true, dbgColor);
+
         }, undefined, this);
 
         if (this.score % 11 === 0 && this.score > 0) {
