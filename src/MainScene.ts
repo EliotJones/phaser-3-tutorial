@@ -9,6 +9,11 @@ export class MainScene extends Phaser.Scene {
     player!: DynSprite;
     cursors: Phaser.Types.Input.Keyboard.CursorKeys | undefined;
 
+    maxSpeed = 320;
+    accel = 600;
+    drag = 700;
+    lastJumpTime = 0;
+
     spawnableWorld: { x: number; y: number; width: number; yBot: number; }[] = [
         { x: 0, y: 0, width: 800, yBot: 220 - 16 },
         { x: 0, y: 250 + 16, width: 800, yBot: 400 - 16 },
@@ -53,6 +58,8 @@ export class MainScene extends Phaser.Scene {
         this.player.setBounce(0.3);
         this.player.setCollideWorldBounds(false);
         this.player.body.setGravityY(100);
+        this.player.setMaxVelocity(this.maxSpeed, 500); // X, Y
+        this.player.setDragX(this.drag);
 
         this.anims.create({
             key: 'left',
@@ -129,7 +136,7 @@ export class MainScene extends Phaser.Scene {
 
         }, undefined, this);
 
-        if (this.score % 3 === 0 && this.score > 0) {
+        if (this.score % 9 === 0 && this.score > 0) {
 
             var x = (player.x < 400) ? Phaser.Math.Between(400, 800) : Phaser.Math.Between(0, 400);
 
@@ -155,36 +162,46 @@ export class MainScene extends Phaser.Scene {
         this.scene.start(sceneKeys.gameOver, {});
     }
 
-    update() {
+    update(time: number) {
+        const onGround = this.player.body.blocked.down;
         if (!this.cursors) {
             return;
         }
 
         if (this.cursors.left.isDown) {
-            this.player.setVelocityX(-160);
+            if (this.player.body.velocity.x > 0) {
+                this.player.setVelocityX(0)
+            }
+            this.player.setAccelerationX(-this.accel);
 
             this.player.anims.play('left', true);
         }
         else if (this.cursors.right.isDown) {
-            this.player.setVelocityX(160);
+            if (this.player.body.velocity.x < 0) {
+                this.player.setVelocityX(0)
+            }
+            this.player.setAccelerationX(this.accel);
 
             this.player.anims.play('right', true);
         }
         else {
-            this.player.setVelocityX(0);
+            this.player.setAccelerationX(0);
 
             this.player.anims.play('turn');
         }
 
         if (this.player.x < -10) {
-            this.player.setX(805);
+            this.player.setX(803);
         }
         else if (this.player.x > 810) {
-            this.player.setX(-5);
+            this.player.setX(-3);
         }
 
-        if (this.cursors.up.isDown && this.player.body.touching.down) {
+        if (Phaser.Input.Keyboard.JustDown(this.cursors.up)
+            && onGround
+            && time > this.lastJumpTime + 200) {
             this.player.setVelocityY(-360);
+            this.lastJumpTime = time;
         }
     }
 }
