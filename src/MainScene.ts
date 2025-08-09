@@ -141,12 +141,12 @@ export class MainScene extends Phaser.Scene {
             volume: 0.2
         });
 
-        this.time.delayedCall(2000, () => {
+        const timer = this.time.delayedCall(2000, () => {
             const { x, y } = this.getRandomSpawn();
             star.enableBody(true, x, y, true, true);
 
             star.setDebug(true, true, dbgColor);
-
+            timer.destroy();
         }, undefined, this);
 
         if (this.score % 9 === 0 && this.score > 0) {
@@ -163,12 +163,11 @@ export class MainScene extends Phaser.Scene {
     }
 
     hitBomb(player: any, bomb: any) {
-        // this.scene.pause();
         player.setTint(0xff0000);
         player.anims.play('turn');
         this.scene.pause();
 
-        this.sound.get('bg-music').stop();
+        this.sound.stopByKey('bg-music');
         this.gameOverSound.play();
 
         this.gameOver = true;
@@ -176,7 +175,14 @@ export class MainScene extends Phaser.Scene {
         this.scene.stop(sceneKeys.UI);
         this.scene.stop(sceneKeys.main);
 
-        this.scene.start(sceneKeys.gameOver, {});
+        this.scene.transition({
+            target: sceneKeys.gameOver,
+            duration: 1500,
+            moveBelow: true,
+            onUpdate: (progress: number) => {
+                this.cameras.main.setAlpha(1 - progress);
+            }
+        });
     }
 
     update(time: number) {
