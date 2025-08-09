@@ -1,5 +1,6 @@
 import Phaser from "phaser";
 import { sceneKeys } from "./consts";
+import { CircularBuffer } from "./CircularBuffer";
 
 export class MainScene extends Phaser.Scene {
     gameOver = false;
@@ -22,6 +23,9 @@ export class MainScene extends Phaser.Scene {
         { x: 0, y: 250 + 16, width: 800, yBot: 400 - 16 },
         { x: 0, y: 400 + 16, width: 800, yBot: 568 - 16 }
     ];
+
+    recentSpawns: CircularBuffer<{ regionIndex: number; x: number; y: number; }> = new CircularBuffer(3);
+    minSpawnDistance = 80;
     coinSound!: Phaser.Sound.NoAudioSound | Phaser.Sound.HTML5AudioSound | Phaser.Sound.WebAudioSound;
     gameOverSound!: Phaser.Sound.NoAudioSound | Phaser.Sound.HTML5AudioSound | Phaser.Sound.WebAudioSound;
 
@@ -136,11 +140,44 @@ export class MainScene extends Phaser.Scene {
 
     getRandomSpawn() {
         const halfStarHeight = 11;
+        let attempts = 0;
+        const maxAttempts = 50;
+        
+        while (attempts < maxAttempts) {
+            // Avoid the last used region if possible
+            const recentSpawns = this.recentSpawns.getAll();
+            const lastRegion = this.recentSpawns.getLast()?.regionIndex ?? -1;
+            const availableRegions = this.spawnableWorld
+                .map((_, index) => index)
+                .filter(index => index !== lastRegion || this.spawnableWorld.length === 1);
+            
+            const regionIx = availableRegions[Phaser.Math.Between(0, availableRegions.length - 1)];
+            const region = this.spawnableWorld[regionIx];
+            
+            const x = Phaser.Math.Between(region.x, region.width - halfStarHeight);
+            const y = Phaser.Math.Between(region.y + halfStarHeight, region.yBot - 22);
+            
+            // Check distance to all recent spawns
+            const tooClose = recentSpawns.some(recent => {
+                const distance = Math.sqrt((x - recent.x) ** 2 + (y - recent.y) ** 2);
+                return distance < this.minSpawnDistance;
+            });
+            
+            if (!tooClose) {
+                this.recentSpawns.add({ regionIndex: regionIx, x, y });
+                return { x, y };
+            }
+            
+            attempts++;
+        }
+        
+        // Fallback: if we can't find a good spot after max attempts
         const regionIx = Phaser.Math.Between(0, this.spawnableWorld.length - 1);
         const region = this.spawnableWorld[regionIx];
         const x = Phaser.Math.Between(region.x, region.width - halfStarHeight);
         const y = Phaser.Math.Between(region.y + halfStarHeight, region.yBot - 22);
-
+        
+        this.recentSpawns.add({ regionIndex: regionIx, x, y });
         return { x, y };
     }
 
