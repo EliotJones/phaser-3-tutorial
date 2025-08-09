@@ -245,7 +245,6 @@ export class MainScene extends Phaser.Scene {
         this.gameOver = true;
 
         this.scene.stop(sceneKeys.UI);
-        this.scene.stop(sceneKeys.main);
 
         this.scene.transition({
             target: sceneKeys.gameOver,
