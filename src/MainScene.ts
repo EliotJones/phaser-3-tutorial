@@ -19,6 +19,8 @@ export class MainScene extends Phaser.Scene {
         { x: 0, y: 250 + 16, width: 800, yBot: 400 - 16 },
         { x: 0, y: 400 + 16, width: 800, yBot: 568 - 16 }
     ];
+    coinSound!: Phaser.Sound.NoAudioSound | Phaser.Sound.HTML5AudioSound | Phaser.Sound.WebAudioSound;
+    gameOverSound!: Phaser.Sound.NoAudioSound | Phaser.Sound.HTML5AudioSound | Phaser.Sound.WebAudioSound;
 
     constructor() {
         super(sceneKeys.main);
@@ -29,6 +31,9 @@ export class MainScene extends Phaser.Scene {
         this.load.image('ground', 'assets/platform.png');
         this.load.image('star', 'assets/star.png');
         this.load.image('bomb', 'assets/bomb.png');
+        this.load.audio('coin', 'assets/coin.mp3');
+        this.load.audio('game-over', 'assets/game-over.mp3');
+        this.load.audio('bg-music', 'assets/bg-music.mp3');
         this.load.spritesheet('dude',
             'assets/dude.png',
             { frameWidth: 32, frameHeight: 48 }
@@ -105,6 +110,11 @@ export class MainScene extends Phaser.Scene {
         this.physics.add.collider(this.bombs, platforms);
 
         this.physics.add.collider(this.player, this.bombs, this.hitBomb, undefined, this);
+        this.coinSound = this.sound.add('coin');
+        this.gameOverSound = this.sound.add('game-over');
+        this.sound.play('bg-music', {
+            loop: true
+        });
     }
 
     getRandomSpawn() {
@@ -127,6 +137,9 @@ export class MainScene extends Phaser.Scene {
 
         this.score += 1;
         this.registry.set('score', this.score);
+        this.coinSound.play({
+            volume: 0.2
+        });
 
         this.time.delayedCall(2000, () => {
             const { x, y } = this.getRandomSpawn();
@@ -153,6 +166,10 @@ export class MainScene extends Phaser.Scene {
         // this.scene.pause();
         player.setTint(0xff0000);
         player.anims.play('turn');
+        this.scene.pause();
+
+        this.sound.get('bg-music').stop();
+        this.gameOverSound.play();
 
         this.gameOver = true;
 
