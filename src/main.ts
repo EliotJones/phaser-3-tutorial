@@ -1,5 +1,7 @@
 import Phaser, { GameObjects } from "phaser";
 
+const halfStarHeight = 11;
+
 class MainScene extends Phaser.Scene {
     gameOver = false;
     score = 0;
@@ -9,6 +11,12 @@ class MainScene extends Phaser.Scene {
     bombs!: Grp;
     player!: DynSprite;
     cursors: Phaser.Types.Input.Keyboard.CursorKeys | undefined;
+
+    spawnableWorld: { x: number, y: number, width: number, yBot: number }[] = [
+        { x: 0, y: 0, width: 800, yBot: 220 - 16 },
+        { x: 0, y: 250 + 16, width: 800, yBot: 400 - 16 },
+        { x: 0, y: 400 + 16, width: 800, yBot: 568 - 16 }
+    ]
 
     constructor() {
         super('main')
@@ -32,7 +40,7 @@ class MainScene extends Phaser.Scene {
 
         const platforms = this.physics.add.staticGroup();
 
-        (platforms.create(400, 568, 'ground')).setScale(5, 2).refreshBody();
+        platforms.create(400, 568, 'ground').setScale(5, 2).refreshBody();
 
         platforms.create(600, 400, 'ground');
         platforms.create(50, 250, 'ground');
@@ -65,11 +73,12 @@ class MainScene extends Phaser.Scene {
 
         this.physics.add.collider(this.player, platforms);
 
-        this.stars = this.physics.add.group({
-            key: 'star',
-            repeat: 11,
-            setXY: { x: 12, y: 0, stepX: 70 }
-        });
+        this.stars = this.physics.add.group();
+
+        for (let i = 0; i < 11; i++) {
+            const { x, y } = this.getRandomSpawn();
+            this.stars.create(x, y, 'star');
+        }
 
         this.stars.children.iterate(child => (child as any).setBounceY(Phaser.Math.FloatBetween(0.2, 0.4)));
         this.physics.add.collider(this.stars, platforms);
@@ -90,6 +99,17 @@ class MainScene extends Phaser.Scene {
         this.physics.add.collider(this.bombs, platforms);
 
         this.physics.add.collider(this.player, this.bombs, this.hitBomb, undefined, this);
+
+        // this.cameras.main.startFollow(this.player)
+    }
+
+    getRandomSpawn() {
+        const regionIx = Phaser.Math.Between(0, this.spawnableWorld.length - 1);
+        const region = this.spawnableWorld[regionIx];
+        const x = Phaser.Math.Between(region.x + halfStarHeight, region.width - region.x - halfStarHeight);
+        const y = Phaser.Math.Between(region.y + halfStarHeight, region.yBot - 22);
+
+        return { x, y };
     }
 
     collectStar(
@@ -101,9 +121,13 @@ class MainScene extends Phaser.Scene {
         this.score += 10;
         this.scoreText.setText(`score: ${this.score}`);
 
-        if (this.stars.countActive(true) === 0) {
-            this.stars.children.iterate((child: any) =>
-                child.enableBody(true, child.x, 0, true, true));
+        this.time.delayedCall(2000, () => {
+            console.log('star respawn');
+            const { x, y } = this.getRandomSpawn();
+            star.enableBody(true, x, y, true, true);
+        }, undefined, this);
+
+        if (this.score % 11 === 0 && this.score > 0) {
 
             var x = (player.x < 400) ? Phaser.Math.Between(400, 800) : Phaser.Math.Between(0, 400);
 
