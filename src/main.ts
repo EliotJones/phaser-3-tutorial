@@ -1,13 +1,13 @@
-import Phaser from "phaser";
+import Phaser, { GameObjects } from "phaser";
 
 class MainScene extends Phaser.Scene {
     gameOver = false;
     score = 0;
     scoreText!: Phaser.GameObjects.Text;
 
-    stars!: Phaser.Physics.Arcade.Group;
-    bombs!: Phaser.Physics.Arcade.Group;
-    player!: Phaser.Types.Physics.Arcade.SpriteWithDynamicBody;
+    stars!: Grp;
+    bombs!: Grp;
+    player!: DynSprite;
     cursors: Phaser.Types.Input.Keyboard.CursorKeys | undefined;
 
     constructor() {
@@ -32,15 +32,15 @@ class MainScene extends Phaser.Scene {
 
         const platforms = this.physics.add.staticGroup();
 
-        platforms.create(400, 568, 'ground').setScale(2).refreshBody();
+        (platforms.create(400, 568, 'ground')).setScale(5, 2).refreshBody();
 
         platforms.create(600, 400, 'ground');
         platforms.create(50, 250, 'ground');
         platforms.create(650, 220, 'ground');
 
         this.player = this.physics.add.sprite(100, 450, 'dude');
-        this.player.setBounce(0.2);
-        this.player.setCollideWorldBounds(true);
+        this.player.setBounce(0.3);
+        this.player.setCollideWorldBounds(false);
         this.player.body.setGravityY(100);
 
         this.anims.create({
@@ -71,12 +71,12 @@ class MainScene extends Phaser.Scene {
             setXY: { x: 12, y: 0, stepX: 70 }
         });
 
-        this.stars.children.iterate(child => (child as any).setBounceY(Phaser.Math.FloatBetween(0.4, 0.8)));
+        this.stars.children.iterate(child => (child as any).setBounceY(Phaser.Math.FloatBetween(0.2, 0.4)));
         this.physics.add.collider(this.stars, platforms);
         this.physics.add.overlap(
             this.player,
             this.stars,
-            this.collectStar,
+            this.collectStar as Phaser.Types.Physics.Arcade.ArcadePhysicsCallback,
             undefined,
             this
         );
@@ -92,12 +92,14 @@ class MainScene extends Phaser.Scene {
         this.physics.add.collider(this.player, this.bombs, this.hitBomb, undefined, this);
     }
 
-    collectStar(player: any, star: any) {
+    collectStar(
+        player: DynSprite,
+        star: ArcadeImage
+    ) {
         star.disableBody(true, true);
 
         this.score += 10;
         this.scoreText.setText(`score: ${this.score}`);
-
 
         if (this.stars.countActive(true) === 0) {
             this.stars.children.iterate((child: any) =>
@@ -140,6 +142,13 @@ class MainScene extends Phaser.Scene {
             this.player.setVelocityX(0);
 
             this.player.anims.play('turn');
+        }
+
+        if (this.player.x < -10) {
+            this.player.setX(805)
+        }
+        else if (this.player.x > 810) {
+            this.player.setX(-5)
         }
 
         if (this.cursors.up.isDown && this.player.body.touching.down) {
