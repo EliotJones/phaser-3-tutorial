@@ -24,7 +24,7 @@ export class MainScene extends Phaser.Scene {
         { x: 0, y: 400 + 16, width: 800, yBot: 568 - 16 }
     ];
 
-    recentSpawns: CircularBuffer<{ regionIndex: number; x: number; y: number; }> = new CircularBuffer(3);
+    recentSpawns: CircularBuffer<{ regionIndex: number; x: number; }> = new CircularBuffer(3);
     minSpawnDistance = 80;
     coinSound!: Phaser.Sound.NoAudioSound | Phaser.Sound.HTML5AudioSound | Phaser.Sound.WebAudioSound;
     gameOverSound!: Phaser.Sound.NoAudioSound | Phaser.Sound.HTML5AudioSound | Phaser.Sound.WebAudioSound;
@@ -53,6 +53,11 @@ export class MainScene extends Phaser.Scene {
             'assets/dude.png',
             { frameWidth: 32, frameHeight: 48 }
         );
+        this.load.spritesheet('tileset', 'assets/world_tileset.png',
+            {
+                frameWidth: 16, frameHeight: 16
+            }
+        );
     }
 
     create() {
@@ -74,11 +79,19 @@ export class MainScene extends Phaser.Scene {
         this.scene.launch(sceneKeys.UI);
         this.scene.bringToTop(sceneKeys.UI);
 
-        platforms.create(400, 568, 'ground').setScale(5, 2).refreshBody();
+        const ground = this.add.tileSprite(400, 568, 800, 32, 'tileset', 1)
+            .setScale(2);
+        platforms.add(ground);
 
-        platforms.create(600, 400, 'ground');
-        platforms.create(50, 250, 'ground');
-        platforms.create(650, 220, 'ground');
+        const plat1 = this.add.tileSprite(600, 400, 198, 16, 'tileset', 8)
+            .setScale(2);
+        platforms.add(plat1);
+
+        const plat2 = this.add.tileSprite(50, 250, 198, 16, 'tileset', 5).setScale(2);
+        platforms.add(plat2);
+
+        const plat3 = this.add.tileSprite(650, 220, 198, 16, 'tileset', 0).setScale(2);
+        platforms.add(plat3);
 
         this.player = this.physics.add.sprite(100, 450, 'dude');
         this.player.setBounce(0.3);
@@ -116,7 +129,12 @@ export class MainScene extends Phaser.Scene {
             this.stars.create(x, y, 'star');
         }
 
-        this.stars.children.iterate(child => (child as any).setBounceY(Phaser.Math.FloatBetween(0.2, 0.4)));
+        this.stars.children.iterate((child: Phaser.GameObjects.GameObject) => {
+            const star = child as any;
+            star.setBounceY(Phaser.Math.FloatBetween(0.2, 0.4));
+            star.body.setSize(20, 20);
+            return true
+        });
         this.physics.add.collider(this.stars, platforms);
         this.physics.add.overlap(
             this.player,
@@ -142,7 +160,7 @@ export class MainScene extends Phaser.Scene {
         const halfStarHeight = 11;
         let attempts = 0;
         const maxAttempts = 50;
-        
+
         while (attempts < maxAttempts) {
             // Avoid the last used region if possible
             const recentSpawns = this.recentSpawns.getAll();
@@ -150,34 +168,34 @@ export class MainScene extends Phaser.Scene {
             const availableRegions = this.spawnableWorld
                 .map((_, index) => index)
                 .filter(index => index !== lastRegion || this.spawnableWorld.length === 1);
-            
+
             const regionIx = availableRegions[Phaser.Math.Between(0, availableRegions.length - 1)];
             const region = this.spawnableWorld[regionIx];
-            
+
             const x = Phaser.Math.Between(region.x, region.width - halfStarHeight);
-            const y = Phaser.Math.Between(region.y + halfStarHeight, region.yBot - 22);
-            
+            const y = Phaser.Math.Between(region.y + halfStarHeight, region.yBot - 30);
+
             // Check distance to all recent spawns
             const tooClose = recentSpawns.some(recent => {
-                const distance = Math.sqrt((x - recent.x) ** 2 + (y - recent.y) ** 2);
+                const distance = Math.abs(x - recent.x);
                 return distance < this.minSpawnDistance;
             });
-            
+
             if (!tooClose) {
-                this.recentSpawns.add({ regionIndex: regionIx, x, y });
+                this.recentSpawns.add({ regionIndex: regionIx, x });
                 return { x, y };
             }
-            
+
             attempts++;
         }
-        
+
         // Fallback: if we can't find a good spot after max attempts
         const regionIx = Phaser.Math.Between(0, this.spawnableWorld.length - 1);
         const region = this.spawnableWorld[regionIx];
         const x = Phaser.Math.Between(region.x, region.width - halfStarHeight);
         const y = Phaser.Math.Between(region.y + halfStarHeight, region.yBot - 22);
-        
-        this.recentSpawns.add({ regionIndex: regionIx, x, y });
+
+        this.recentSpawns.add({ regionIndex: regionIx, x });
         return { x, y };
     }
 

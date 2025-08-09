@@ -36,7 +36,7 @@ export class UIScene extends Phaser.Scene {
         this.barContainer.add(star);
         this.barContainer.add(bomb);
 
-        const pauseBtn = this.add.sprite(400, 5 + 5, 'pause-btn', 0).setOrigin(0.5, 0).setScale(1.5);
+        const pauseBtn = this.add.sprite(400, 5 + 3, 'pause-btn', 0).setOrigin(0.5, 0).setScale(1.5);
         pauseBtn.setInteractive();
         pauseBtn.on('pointerover', () => {
             pauseBtn.setFrame(1);
