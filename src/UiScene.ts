@@ -1,5 +1,6 @@
 import Phaser, { GameObjects } from "phaser";
 import { sceneKeys } from "./consts";
+import { getAssetPath } from "./config";
 
 export class UIScene extends Phaser.Scene {
     barContainer!: GameObjects.Container;
@@ -14,10 +15,10 @@ export class UIScene extends Phaser.Scene {
     }
 
     preload() {
-        this.load.image('star', 'assets/star.png');
-        this.load.image('bomb', 'assets/bomb.png');
-        this.load.image('score-bar', 'assets/score-bar.png');
-        this.load.spritesheet('pause-btn', 'assets/pause-btn.png', {
+        this.load.image('star', getAssetPath('assets/star.png'));
+        this.load.image('bomb', getAssetPath('assets/bomb.png'));
+        this.load.image('score-bar', getAssetPath('assets/score-bar.png'));
+        this.load.spritesheet('pause-btn', getAssetPath('assets/pause-btn.png'), {
             frameHeight: 18,
             frameWidth: 18,
             startFrame: 0

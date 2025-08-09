@@ -1,6 +1,7 @@
 import Phaser from "phaser";
 import { sceneKeys } from "./consts";
 import { CircularBuffer } from "./CircularBuffer";
+import { getAssetPath } from "./config";
 
 export class MainScene extends Phaser.Scene {
     gameOver = false;
@@ -35,25 +36,25 @@ export class MainScene extends Phaser.Scene {
 
     preload() {
         // Images
-        this.load.image('sky', 'assets/sky.png');
-        this.load.image('ground', 'assets/platform.png');
-        this.load.image('star', 'assets/star.png');
-        this.load.image('bomb', 'assets/bomb.png');
-        this.load.image('cloud-bg', 'assets/cloud-bg.png');
-        this.load.image('cloud-mg', 'assets/cloud-mg.png');
-        this.load.image('cloud-fg', 'assets/cloud-fg.png');
+        this.load.image('sky', getAssetPath('assets/sky.png'));
+        this.load.image('ground', getAssetPath('assets/platform.png'));
+        this.load.image('star', getAssetPath('assets/star.png'));
+        this.load.image('bomb', getAssetPath('assets/bomb.png'));
+        this.load.image('cloud-bg', getAssetPath('assets/cloud-bg.png'));
+        this.load.image('cloud-mg', getAssetPath('assets/cloud-mg.png'));
+        this.load.image('cloud-fg', getAssetPath('assets/cloud-fg.png'));
 
         // Music
-        this.load.audio('coin', 'assets/coin.mp3');
-        this.load.audio('game-over', 'assets/game-over.mp3');
-        this.load.audio('bg-music', 'assets/bg-music.mp3');
+        this.load.audio('coin', getAssetPath('assets/coin.mp3'));
+        this.load.audio('game-over', getAssetPath('assets/game-over.mp3'));
+        this.load.audio('bg-music', getAssetPath('assets/bg-music.mp3'));
 
         // Animations
         this.load.spritesheet('dude',
-            'assets/dude.png',
+            getAssetPath('assets/dude.png'),
             { frameWidth: 32, frameHeight: 48 }
         );
-        this.load.spritesheet('tileset', 'assets/world_tileset.png',
+        this.load.spritesheet('tileset', getAssetPath('assets/world_tileset.png'),
             {
                 frameWidth: 16, frameHeight: 16
             }

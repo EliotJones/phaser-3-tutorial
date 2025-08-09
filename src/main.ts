@@ -14,7 +14,8 @@ var config: Phaser.Types.Core.GameConfig = {
             gravity: { y: 320, x: 0 },
             debug: false
         }
-    }
+    },
+    parent: 'phaser'
 }
 
 var game = new Phaser.Game(config);
