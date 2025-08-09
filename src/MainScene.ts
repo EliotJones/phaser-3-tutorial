@@ -8,11 +8,14 @@ export class MainScene extends Phaser.Scene {
     bombs!: Grp;
     player!: DynSprite;
     cursors: Phaser.Types.Input.Keyboard.CursorKeys | undefined;
+    clouds: Ts[] = [];
+    cloudSpeeds: number[] = [-0.1, 0.2, -0.6];
 
     maxSpeed = 320;
     accel = 600;
     drag = 700;
     lastJumpTime = 0;
+    canJump = true;
 
     spawnableWorld: { x: number; y: number; width: number; yBot: number; }[] = [
         { x: 0, y: 0, width: 800, yBot: 220 - 16 },
@@ -27,13 +30,21 @@ export class MainScene extends Phaser.Scene {
     }
 
     preload() {
+        // Images
         this.load.image('sky', 'assets/sky.png');
         this.load.image('ground', 'assets/platform.png');
         this.load.image('star', 'assets/star.png');
         this.load.image('bomb', 'assets/bomb.png');
+        this.load.image('cloud-bg', 'assets/cloud-bg.png');
+        this.load.image('cloud-mg', 'assets/cloud-mg.png');
+        this.load.image('cloud-fg', 'assets/cloud-fg.png');
+
+        // Music
         this.load.audio('coin', 'assets/coin.mp3');
         this.load.audio('game-over', 'assets/game-over.mp3');
         this.load.audio('bg-music', 'assets/bg-music.mp3');
+
+        // Animations
         this.load.spritesheet('dude',
             'assets/dude.png',
             { frameWidth: 32, frameHeight: 48 }
@@ -42,6 +53,12 @@ export class MainScene extends Phaser.Scene {
 
     create() {
         this.add.image(0, 0, 'sky').setOrigin(0, 0);
+
+        this.clouds = [
+            this.add.tileSprite(0, 150, 800, 500, 'cloud-bg').setTileScale(1.2, 1.2).setOrigin(0, 0),
+            this.add.tileSprite(0, 150, 800, 500, 'cloud-mg').setTileScale(1.2, 1.2).setOrigin(0, 0),
+            this.add.tileSprite(0, 150, 800, 500, 'cloud-fg').setTileScale(1.2, 1.2).setOrigin(0, 0),
+        ];
 
         this.cursors = this.input.keyboard?.createCursorKeys();
         this.score = 0;
@@ -185,10 +202,15 @@ export class MainScene extends Phaser.Scene {
         });
     }
 
-    update(time: number) {
+    update(time: number, delta: number) {
         const onGround = this.player.body.blocked.down;
         if (!this.cursors) {
             return;
+        }
+
+        // Reset jump ability when touching ground
+        if (onGround && !this.canJump) {
+            this.canJump = true;
         }
 
         if (this.cursors.left.isDown) {
@@ -220,11 +242,16 @@ export class MainScene extends Phaser.Scene {
             this.player.setX(-3);
         }
 
+        for (let i = 0; i < this.clouds.length; i++) {
+            this.clouds[i].tilePositionX += this.cloudSpeeds[i] * (delta / 30);
+        }
+
         if (Phaser.Input.Keyboard.JustDown(this.cursors.up)
-            && onGround
+            && this.canJump
             && time > this.lastJumpTime + 200) {
             this.player.setVelocityY(-360);
             this.lastJumpTime = time;
+            this.canJump = false;
         }
     }
 }

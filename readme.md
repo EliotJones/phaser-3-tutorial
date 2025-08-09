@@ -31,6 +31,12 @@ When defining the function param types:
 Image assets from Phaser 3 tutorial:
 - https://phaser.io/tutorials/making-your-first-phaser-3-game/part1
 
+Cloud images:
+- https://free-game-assets.itch.io/free-sky-with-clouds-background-pixel-art-set
+
+UI pause button:
+- https://kicked-in-teeth.itch.io/button-ui
+
 Sounds:
 - Coin: Sound Effect by <a href="https://pixabay.com/users/liecio-3298866/?utm_source=link-attribution&utm_medium=referral&utm_campaign=music&utm_content=190037">LIECIO</a> from <a href="https://pixabay.com//?utm_source=link-attribution&utm_medium=referral&utm_campaign=music&utm_content=190037">Pixabay</a>
 - Game over: https://pixabay.com/sound-effects/080047-lose-funny-retro-video-game-80925/
