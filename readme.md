@@ -2,6 +2,8 @@
 
 ![img](screenshot.png)
 
+Play [here](https://eliot-jones.com/games/phaser)
+
 Code from the Phaser 3 [first game tutorial](https://phaser.io/tutorials/making-your-first-phaser-3-game/part1).
 
 Extends tutorial code with the following changes:
