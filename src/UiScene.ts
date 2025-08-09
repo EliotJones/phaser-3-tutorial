@@ -4,8 +4,10 @@ import { sceneKeys } from "./consts";
 export class UIScene extends Phaser.Scene {
     barContainer!: GameObjects.Container;
     scoreText!: Phaser.GameObjects.Text;
+    pauseText!: Phaser.GameObjects.Text;
     bombs: number = 0;
     bombsText!: Phaser.GameObjects.Text;
+    paused: boolean = false;
 
     constructor() {
         super(sceneKeys.UI);
@@ -15,6 +17,11 @@ export class UIScene extends Phaser.Scene {
         this.load.image('star', 'assets/star.png');
         this.load.image('bomb', 'assets/bomb.png');
         this.load.image('score-bar', 'assets/score-bar.png');
+        this.load.spritesheet('pause-btn', 'assets/pause-btn.png', {
+            frameHeight: 18,
+            frameWidth: 18,
+            startFrame: 0
+        })
     }
 
     create() {
@@ -28,6 +35,40 @@ export class UIScene extends Phaser.Scene {
             .setScale(1.2);
         this.barContainer.add(star);
         this.barContainer.add(bomb);
+
+        const pauseBtn = this.add.sprite(400, 5 + 5, 'pause-btn', 0).setOrigin(0.5, 0).setScale(1.5);
+        pauseBtn.setInteractive();
+        pauseBtn.on('pointerover', () => {
+            pauseBtn.setFrame(1);
+            this.input.setDefaultCursor('pointer');
+        });
+        pauseBtn.on('pointerout', () => {
+            pauseBtn.setFrame(0);
+            this.input.setDefaultCursor('default');
+        });
+        pauseBtn.on('pointerup', () => {
+            console.log('pause btn click');
+            this.paused = !this.paused;
+            if (this.paused) {
+                pauseBtn.setTint(0xc0392b);
+                this.scene.pause(sceneKeys.main);
+                this.pauseText.setVisible(true);
+                // Pause music in MainScene
+                const mainScene = this.scene.get(sceneKeys.main);
+                mainScene.sound.pauseAll();
+            } else {
+                pauseBtn.clearTint();
+                this.scene.resume(sceneKeys.main);
+                this.pauseText.setVisible(false);
+                // Resume music in MainScene
+                const mainScene = this.scene.get(sceneKeys.main);
+                mainScene.sound.resumeAll();
+            }
+        })
+
+        this.pauseText = this.add.text(400, 300, 'Paused', {
+            font: '32px Consolas', fontStyle: 'bold', color: '#c0392b'
+        }).setOrigin(0.5).setVisible(false);
 
         const scoreTextX = 5 + 12 + star.displayWidth;
         const scoreTextY = 5 + 4;
